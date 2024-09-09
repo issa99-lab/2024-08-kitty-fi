@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.26;
 
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {ERC20} from "node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract KittyCoin is ERC20 {
     error KittyCoin__OnlyKittyPoolCanMintOrBurn();
 
-    address private pool;
+    address private pool; //immutable?? low
 
     modifier onlyKittyPool() {
         require(msg.sender == pool, KittyCoin__OnlyKittyPoolCanMintOrBurn());
