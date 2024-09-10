@@ -169,6 +169,7 @@ contract KittyPool {
         kittyCoinMeownted[_user] = 0;
         i_kittyCoin.burn(msg.sender, totalDebt);
 
+        //audit after setting collat to 0?
         uint256 userMeowllateralInEuros = getUserMeowllateralInEuros(_user);
 
         uint256 redeemPercent;
