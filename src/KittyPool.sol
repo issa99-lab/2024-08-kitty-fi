@@ -24,6 +24,7 @@ contract KittyPool {
     error KittyPool__TokenAlreadyExistsMeeoooww();
     error KittyPool__UserIsPurrfect();
 
+    //e what do they do?
     address private maintainer; //q immutable
     mapping(address token => address vault) private tokenToVault;
     address[] private vaults;
@@ -32,7 +33,7 @@ contract KittyPool {
     address private immutable i_aavePool; //q smartC/interface?
     mapping(address user => uint256 debt) private kittyCoinMeownted;
 
-    uint256 private constant COLLATERAL_PERCENT = 169;
+    uint256 private constant COLLATERAL_PERCENT = 169; //q overcollateralized by 169%
     uint256 private constant COLLATERAL_PRECISION = 100;
     uint256 private constant REWARD_PERCENT = 0.05e18;
     uint256 private constant PRECISION = 1e18;
@@ -42,6 +43,7 @@ contract KittyPool {
         _;
     }
 
+    //e we cannot use tokensVaults that dont exist
     modifier tokenExists(address _token) {
         require(
             tokenToVault[_token] != address(0),
@@ -68,8 +70,8 @@ contract KittyPool {
     /**
      * @notice Creates a Vault for the token
      * @dev The vault created maintains all the accounting of the collateral
-     * @param _token address of collateral token for which vault is created
-     * @param _priceFeed price feed for the token (TOKEN / USD)
+     * @param _token address of collateral token for which vault is created weth
+     * @param _priceFeed price feed for the token (TOKEN / USD)  weth/usd
      */
     function meownufactureKittyVault(
         address _token,
@@ -80,6 +82,8 @@ contract KittyPool {
             KittyPool__TokenAlreadyExistsMeeoooww()
         );
 
+        //e why is the salt being used?
+        /*ensures that the address of the newly created contract can be precomputed without actually deploying the contract. This is useful when you want to guarantee that the same contract will always be deployed to the same address, provided that the salt and the deployment bytecode are the same. */
         address _kittyVault = address(
             new KittyVault{
                 salt: bytes32(abi.encodePacked(ERC20(_token).symbol()))
@@ -99,9 +103,12 @@ contract KittyPool {
 
     /**
      * @notice Deposits the collateral in the vault
+     *
      * @param _token token address
      * @param _ameownt amount of token to deposit
      */
+
+    // Deposit by LP or user?
     function depawsitMeowllateral(
         address _token,
         uint256 _ameownt
@@ -114,6 +121,7 @@ contract KittyPool {
      * @param _token token address
      * @param _ameownt amount of catty nip (shares), corresponding to which collateral is withdrawn
      */
+    // audit Amount in Kitty coin?
     function whiskdrawMeowllateral(
         address _token,
         uint256 _ameownt
@@ -122,7 +130,7 @@ contract KittyPool {
             msg.sender,
             _ameownt
         );
-        //audit check after interactions? will keep withdrawing as long as the require is true
+        //finding check after interactions? will keep withdrawing as long as the require is true
         require(
             _hasEnoughMeowllateral(msg.sender),
             KittyPool__NotEnoughCollateral()
@@ -133,10 +141,11 @@ contract KittyPool {
      * @notice Mints the KittyCoin for the user
      * @param _ameownt amount of KittyCoin to mint
      */
+    //audit should be after depositing!
     function meowintKittyCoin(uint256 _ameownt) external {
         kittyCoinMeownted[msg.sender] += _ameownt;
         i_kittyCoin.mint(msg.sender, _ameownt);
-        //audit check after interactions? no check if amount > 0,
+        //audit check after interactions? no check if amount > 0, SHOULDNT THIS HAPPEN INSIDE THE DEPOSIT COLLATERAL?
         require(
             _hasEnoughMeowllateral(msg.sender),
             KittyPool__NotEnoughCollateral()
@@ -148,7 +157,10 @@ contract KittyPool {
      * @param _onBehalfOf address of the user for which debt is reduced
      * @param _ameownt amount of KittyCoin to burn
      */
+
     //audit does address have collateral to burn? check missing
+    //finding CHECKS? amount should be <= his balance of minted coins
+    //also why? what if they have good debt, :threshhold reached
     function burnKittyCoin(address _onBehalfOf, uint256 _ameownt) external {
         kittyCoinMeownted[_onBehalfOf] -= _ameownt;
         i_kittyCoin.burn(msg.sender, _ameownt);
@@ -167,6 +179,7 @@ contract KittyPool {
         uint256 totalDebt = kittyCoinMeownted[_user];
 
         kittyCoinMeownted[_user] = 0;
+        //Finding burning the callers coins not USER
         i_kittyCoin.burn(msg.sender, totalDebt);
 
         //audit after setting collat to 0?
@@ -174,6 +187,7 @@ contract KittyPool {
 
         uint256 redeemPercent;
 
+        //e collateral imereduce, so debt is more
         if (totalDebt >= userMeowllateralInEuros) {
             redeemPercent = PRECISION;
         } else {
@@ -190,6 +204,7 @@ contract KittyPool {
             uint256 vaultCollateral = _vault.getUserVaultMeowllateralInEuros(
                 _user
             );
+            //audit why?
             uint256 toDistribute = vaultCollateral.mulDiv(
                 redeemPercent,
                 PRECISION
@@ -236,9 +251,10 @@ contract KittyPool {
     function getUserMeowllateralInEuros(
         address _user
     ) public view returns (uint256 totalUserMeowllateral) {
-        uint256 vault_length = vaults.length;
+        uint256 vault_length = vaults.length; //5
 
         for (uint256 i; i < vault_length; ) {
+            //audit checks in all vaults if a user has collateral
             totalUserMeowllateral += IKittyVault(vaults[i])
                 .getUserVaultMeowllateralInEuros(_user);
 
